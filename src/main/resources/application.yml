@@ -19,3 +19,8 @@ spring:
 
   liquibase:
     change-log: classpath:db/migration/changelog-master.yml
+
+token:
+  signing:
+    key: ${TOKEN_SIGNING_KEY}
+  expiration: 86400000
