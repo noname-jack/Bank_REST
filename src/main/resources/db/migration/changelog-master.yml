@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1-create-tables
+      author: noname_jack
+      changes:
+        - sqlFile:
+            path: db/migration/changelog/changelog-1-create-tables.sql
