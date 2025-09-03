@@ -1,7 +1,7 @@
 package com.example.bankcards.service;
 
-import com.example.bankcards.dto.AuthRequest;
-import com.example.bankcards.dto.AuthResponse;
+import com.example.bankcards.dto.request.AuthRequest;
+import com.example.bankcards.dto.response.AuthResponse;
 
 
 public interface AuthService {
