@@ -35,8 +35,6 @@ public class Card {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal balance = BigDecimal.ZERO;
 
-    @Column(nullable = false)
-    private Boolean archive = false;
 
     @OneToMany(mappedBy = "fromCard", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Transfer> transfersFrom;

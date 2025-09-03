@@ -1,0 +1,2 @@
+ALTER TABLE users DROP COLUMN archive;
+ALTER TABLE cards DROP COLUMN archive;
