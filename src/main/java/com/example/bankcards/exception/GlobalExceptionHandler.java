@@ -1,12 +1,9 @@
 package com.example.bankcards.exception;
 
 
-import com.example.bankcards.dto.ApiResponse;
-import com.example.bankcards.exception.custom.InvalidJwtException;
-import com.example.bankcards.exception.custom.NotFoundException;
-import com.example.bankcards.exception.custom.UserAlreadyExistsException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.example.bankcards.dto.ApiResponseDto;
+import com.example.bankcards.exception.custom.*;
+
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -19,8 +16,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.Arrays;
-import java.util.Objects;
+
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -33,57 +29,89 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiResponse<Object>> handleAuthException(AuthenticationException ex) {
+    public ResponseEntity<ApiResponseDto<Object>> handleAuthException(AuthenticationException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error("Ошибка аутентификации: " + ex.getMessage(), HttpStatus.UNAUTHORIZED));
+                .body(ApiResponseDto.error("Ошибка аутентификации: " + ex.getMessage(), HttpStatus.UNAUTHORIZED));
     }
 
+
     @ExceptionHandler({NotFoundException.class, UsernameNotFoundException.class})
-    public ResponseEntity<ApiResponse<Object>> handleNotFound(NotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
-                ApiResponse.error(ex.getMessage(), HttpStatus.NOT_FOUND)
+    public ResponseEntity<ApiResponseDto<Object>> handleNotFound(NotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponseDto.error(ex.getMessage(), HttpStatus.NOT_FOUND)
         );
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<ApiResponse<Object>> handleUserExists(UserAlreadyExistsException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
-                ApiResponse.error(ex.getMessage(), HttpStatus.BAD_REQUEST));
+    public ResponseEntity<ApiResponseDto<Object>> handleUserExists(UserAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponseDto.error(ex.getMessage(), HttpStatus.BAD_REQUEST));
     }
 
     @ExceptionHandler(InvalidJwtException.class)
-    public ResponseEntity<ApiResponse<Object>> handleInvalidJwt(InvalidJwtException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
-                ApiResponse.error(ex.getMessage(), HttpStatus.UNAUTHORIZED));
+    public ResponseEntity<ApiResponseDto<Object>> handleInvalidJwt(InvalidJwtException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponseDto.error(ex.getMessage(), HttpStatus.UNAUTHORIZED));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Object>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponseDto<Object>> handleValidation(MethodArgumentNotValidException ex) {
         String errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(e -> e.getField() + ": " + e.getDefaultMessage())
                 .collect(Collectors.joining("; "));
-        return new ResponseEntity<>(
-                ApiResponse.error(errors, HttpStatus.BAD_REQUEST),
-                HttpStatus.BAD_REQUEST
-        );
+        return ResponseEntity.badRequest()
+                .body( ApiResponseDto.error(errors, HttpStatus.BAD_REQUEST));
+
+    }
+
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<ApiResponseDto<Object>> handleInsufficientFunds(InsufficientFundsException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponseDto.error(ex.getMessage(), HttpStatus.BAD_REQUEST));
+    }
+
+    @ExceptionHandler(CardNotActiveException.class)
+    public ResponseEntity<ApiResponseDto<Object>> handleCardNotActive(CardNotActiveException ex) {
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponseDto.error(ex.getMessage(), HttpStatus.BAD_REQUEST));
+    }
+
+    @ExceptionHandler(TransferException.class)
+    public ResponseEntity<ApiResponseDto<Object>> handleTransferException(TransferException ex) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponseDto.error(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+
+    @ExceptionHandler(CardNumberGenerationException.class)
+    public ResponseEntity<ApiResponseDto<Void>> handleCardNumberGeneration(CardNumberGenerationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponseDto.error(ex.getMessage(), HttpStatus.CONFLICT));
+    }
+
+    @ExceptionHandler(InvalidBlockRequestStateException.class)
+    public ResponseEntity<ApiResponseDto<Object>> handleInvalidBlockRequestState(InvalidBlockRequestStateException ex) {
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponseDto.error(ex.getMessage(), HttpStatus.CONFLICT));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse<Object>> handleConstraintViolation(ConstraintViolationException ex) {
+    public ResponseEntity<ApiResponseDto<Object>> handleConstraintViolation(ConstraintViolationException ex) {
         String errors = ex.getConstraintViolations().stream()
                 .map(ConstraintViolation::getMessage)
                 .collect(Collectors.joining("; "));
-        return new ResponseEntity<>(
-                ApiResponse.error(errors, HttpStatus.BAD_REQUEST),
-                HttpStatus.BAD_REQUEST
-        );
+        return ResponseEntity.badRequest()
+                .body( ApiResponseDto.error(errors, HttpStatus.BAD_REQUEST));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiResponse<Object>> handleJsonParseError(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ApiResponseDto<Object>> handleJsonParseError(HttpMessageNotReadableException ex) {
         return ResponseEntity
                 .badRequest()
-                .body(ApiResponse.error("Некорректный формат JSON запроса", HttpStatus.BAD_REQUEST));
+                .body(ApiResponseDto.error("Некорректный формат JSON запроса" + ex, HttpStatus.BAD_REQUEST));
     }
 
 

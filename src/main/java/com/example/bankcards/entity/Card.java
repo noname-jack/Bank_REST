@@ -1,6 +1,7 @@
 package com.example.bankcards.entity;
 
 import com.example.bankcards.entity.enums.CardStatus;
+import com.example.bankcards.util.CardNumberConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,6 +24,7 @@ public class Card {
     private User user;
 
     @Column(nullable = false, unique = true)
+    @Convert(converter = CardNumberConverter.class)
     private String cardNumber;
 
     @Column(nullable = false)

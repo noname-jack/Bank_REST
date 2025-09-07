@@ -12,3 +12,15 @@ databaseChangeLog:
       changes:
         - sqlFile:
             path: db/migration/changelog/changelog-2-remove-archive-columns.sql
+  - changeSet:
+      id: 3-add-column-createdAt-to-transfer
+      author: noname_jack
+      changes:
+        - sqlFile:
+            path: db/migration/changelog/changelog-3-add-column-createdAt-to-transfer.sql
+  - changeSet:
+      id: 4-create-card-block-request
+      author: noname_jack
+      changes:
+        - sqlFile:
+            path: db/migration/changelog/changelog-4-create-card-block-request.sql
