@@ -39,4 +39,4 @@ token:
   expiration: 86400000
 
 encryption:
-  key-base64: ${KEY-BASE64}
+  key: ${ENCRYPTION_KEY}

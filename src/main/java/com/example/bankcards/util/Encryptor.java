@@ -23,7 +23,7 @@ public class Encryptor {
     private final SecretKey secretKey;
     private final SecureRandom secureRandom;
 
-    public Encryptor(@Value("${encryption.key-base64}") String keyBase64) {
+    public Encryptor(@Value("${encryption.key}") String keyBase64) {
         this.secureRandom = new SecureRandom();
         if (keyBase64 == null || keyBase64.isBlank()) {
             throw new IllegalArgumentException("ENCRYPTION_KEY_BASE64 must be set");
