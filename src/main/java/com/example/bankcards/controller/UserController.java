@@ -1,6 +1,6 @@
 package com.example.bankcards.controller;
 
-import com.example.bankcards.dto.ApiResponse;
+import com.example.bankcards.dto.ApiResponseDto;
 import com.example.bankcards.dto.request.UserRequest;
 import com.example.bankcards.dto.response.UserResponse;
 import com.example.bankcards.service.UserService;
@@ -30,40 +30,40 @@ public class UserController {
 
     @GetMapping("/{id}")
     @PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<UserResponse>> getUser(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(userService.getUserById(id)));
+    public ResponseEntity<ApiResponseDto<UserResponse>> getUser(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponseDto.success(userService.getUserById(id)));
     }
 
     @GetMapping()
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<PagedModel<UserResponse>>> getAllUsers(
+    public ResponseEntity<ApiResponseDto<PagedModel<UserResponse>>> getAllUsers(
             @PageableDefault(size = 20) Pageable pageable){
         Page<UserResponse> users = userService.getAllUsers(pageable);
-        return ResponseEntity.ok(ApiResponse.success(new PagedModel<>(users)));
+        return ResponseEntity.ok(ApiResponseDto.success(new PagedModel<>(users)));
     }
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<UserResponse>> createUser(@RequestBody @Valid UserRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(userService.createUser(request), HttpStatus.CREATED));
+    public ResponseEntity<ApiResponseDto<UserResponse>> createUser(@RequestBody @Valid UserRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(userService.createUser(request), HttpStatus.CREATED));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success(null, HttpStatus.NO_CONTENT));
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<UserResponse>> updateUser(@RequestBody @Valid UserRequest request,
-                                                          @PathVariable Long id,
-                                                          @RequestParam(required = false, defaultValue = "true") boolean withResult )  {
+    public ResponseEntity<ApiResponseDto<UserResponse>> updateUser(@RequestBody @Valid UserRequest request,
+                                                                   @PathVariable Long id,
+                                                                   @RequestParam(required = false, defaultValue = "true") boolean withResult )  {
         userService.updateUser(id, request);
         if (withResult) {
-            return ResponseEntity.ok(ApiResponse.success(userService.getUserById(id)));
+            return ResponseEntity.ok(ApiResponseDto.success(userService.getUserById(id)));
         } else {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body(ApiResponse.success(null,HttpStatus.NO_CONTENT));
+            return ResponseEntity.noContent().build();
         }
     }
 

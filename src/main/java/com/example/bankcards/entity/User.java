@@ -20,12 +20,6 @@ import java.util.List;
 @NoArgsConstructor
 public class User implements UserDetails {
 
-    public User(String username, String passwordHash, Role role) {
-        this.username = username;
-        this.passwordHash = passwordHash;
-        this.role = role;
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

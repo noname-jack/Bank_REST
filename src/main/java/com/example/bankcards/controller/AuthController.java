@@ -1,6 +1,6 @@
 package com.example.bankcards.controller;
 
-import com.example.bankcards.dto.ApiResponse;
+import com.example.bankcards.dto.ApiResponseDto;
 import com.example.bankcards.dto.request.AuthRequest;
 import com.example.bankcards.dto.response.AuthResponse;
 import com.example.bankcards.service.AuthService;
@@ -16,8 +16,9 @@ public class AuthController {
         this.authService = authService;
     }
 
+
     @PostMapping("/login")
-    public ApiResponse<AuthResponse> login(@RequestBody AuthRequest authRequest) {
-        return ApiResponse.success(authService.login(authRequest));
+    public ApiResponseDto<AuthResponse> login(@RequestBody AuthRequest authRequest) {
+        return ApiResponseDto.success(authService.login(authRequest));
     }
 }
