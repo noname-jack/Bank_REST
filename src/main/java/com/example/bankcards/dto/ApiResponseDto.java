@@ -1,11 +1,20 @@
 package com.example.bankcards.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 
+@Schema(description = "Общий формат ответа API")
 public record ApiResponseDto<T>(
+        @Schema(description = "Сообщение о результате запроса", example = "success")
         String message,
+
+        @Schema(description = "Данные, возвращаемые в ответе", nullable = true)
         T data,
+
+        @Schema(description = "Сообщение об ошибке, если запрос неуспешен", example = "Invalid request", nullable = true)
         String error,
+
+        @Schema(description = "HTTP-статус ответа", example = "OK")
         HttpStatus status
 ) {
 

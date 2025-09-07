@@ -1,1 +1,1764 @@
-# Здесь будет OpenAPI описание всех доступных эндпоинтов и моделей данных.
+openapi: 3.1.0
+info:
+  title: Bank Cards API
+  description: REST API для управления банковскими картами
+  contact:
+    name: noname-jack
+    email: aleksander.moskovchenko@mail.ru
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Generated server url
+security:
+  - bearerAuth: []
+tags:
+  - name: Пользователи
+    description: API для управления пользователями
+  - name: Переводы
+    description: API для управления переводами между картами
+  - name: Аутентификация
+    description: API для входа в систему
+  - name: Карты
+    description: API для управления банковскими картами
+  - name: Запросы на блокировку карт
+    description: API для управления запросами на блокировку карт
+paths:
+  /api/users/{id}:
+    get:
+      tags:
+        - Пользователи
+      summary: Получение информации о пользователе по ID
+      description: Возвращает данные пользователя по его ID. Доступно для администраторов
+        или самого пользователя.
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: Пользователь успешно найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoUserResponse"
+        "404":
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+    put:
+      tags:
+        - Пользователи
+      summary: Обновление данных пользователя по ID (для администратора)
+      description: Обновляет данные пользователя по его ID. Доступно только администраторам.
+      operationId: updateUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: withResult
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRequest"
+        required: true
+      responses:
+        "200":
+          description: Пользователь успешно обновлён (с возвратом данных)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+        "204":
+          description: Пользователь успешно обновлён (без возврата данных)
+        "404":
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+    delete:
+      tags:
+        - Пользователи
+      summary: Удаление пользователя по ID (для администратора)
+      description: Удаляет пользователя по его ID. Доступно только администраторам.
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "204":
+          description: Пользователь успешно удалён
+        "404":
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+  /api/users:
+    get:
+      tags:
+        - Пользователи
+      summary: Получение списка всех пользователей (для администратора)
+      description: Возвращает постраничный список всех пользователей. Доступно только
+        администраторам.
+      operationId: getAllUsers
+      parameters:
+        - name: pageable
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Pageable"
+      responses:
+        "200":
+          description: Список пользователей успешно получен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoPagedModelUserResponse"
+    post:
+      tags:
+        - Пользователи
+      summary: Создание нового пользователя (для администратора)
+      description: Создаёт нового пользователя на основе переданных данных. Доступно
+        только администраторам.
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRequest"
+        required: true
+      responses:
+        "201":
+          description: Пользователь успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoUserResponse"
+  /api/transfer/my:
+    post:
+      tags:
+        - Переводы
+      summary: Перевод между своими картами (для пользователя)
+      description: "Выполняет перевод средств между картами, принадлежащими аутент\
+        ифицированному пользователю."
+      operationId: transferBetweenMyCards
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferRequest"
+        required: true
+      responses:
+        "200":
+          description: Перевод успешно выполнен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoTransferResponse"
+  /api/cards:
+    get:
+      tags:
+        - Карты
+      summary: Получение списка всех карт (для администратора)
+      description: Возвращает постраничный список всех карт с возможностью фильтрации.
+        Доступно только администраторам.
+      operationId: getAllCardsForAdmin
+      parameters:
+        - name: pageable
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Pageable"
+        - name: filter
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/FilterCardAdminRequest"
+      responses:
+        "200":
+          description: Список карт успешно получен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoPagedModelCardResponse"
+    post:
+      tags:
+        - Карты
+      summary: Создание новой карты (для администратора)
+      description: Создаёт новую карту на основе переданных данных. Доступно только
+        администраторам.
+      operationId: createCard
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CardRequest"
+        required: true
+      responses:
+        "201":
+          description: Карта успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoCardDetailedResponse"
+  /api/cards/my/{cartId}/block-request:
+    post:
+      tags:
+        - Карты
+      summary: Создание запроса на блокировку своей карты (для пользователя)
+      description: "Создаёт запрос на блокировку карты, принадлежащей пользователю\
+        . Доступно только аутентифицированным пользователям."
+      operationId: createBlockRequest
+      parameters:
+        - name: cartId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "201":
+          description: Запрос на блокировку успешно создан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+        "404":
+          description: Карта не найдена или не принадлежит пользователю
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+  /api/cards/block-requests/{id}/reject:
+    post:
+      tags:
+        - Запросы на блокировку карт
+      summary: Отклонение запроса на блокировку карты (для администратора)
+      description: Отклоняет запрос на блокировку карты по его ID. Доступно только
+        администраторам.
+      operationId: reject
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: withResult
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        "200":
+          description: Запрос успешно отклонён (с возвратом данных)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoCardBlockRequestDto"
+        "204":
+          description: Запрос успешно отклонён (без возврата данных)
+        "404":
+          description: Запрос на блокировку не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+  /api/cards/block-requests/{id}/approve:
+    post:
+      tags:
+        - Запросы на блокировку карт
+      summary: Одобрение запроса на блокировку карты (для администратора)
+      description: Одобряет запрос на блокировку карты по его ID. Доступно только
+        администраторам.
+      operationId: approve
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: withResult
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        "200":
+          description: Запрос успешно одобрен (с возвратом данных)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoCardBlockRequestDto"
+        "204":
+          description: Запрос успешно одобрен (без возврата данных)
+        "404":
+          description: Запрос на блокировку не найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+  /api/auth/login:
+    post:
+      tags:
+        - Аутентификация
+      summary: Вход в систему
+      description: Аутентификация пользователя по логину и паролю
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+        required: true
+      responses:
+        "200":
+          description: Успешная аутентификация
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoAuthResponse"
+        "401":
+          description: Неверные учетные данные
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoAuthResponse"
+  /api/cards/{id}/block:
+    patch:
+      tags:
+        - Карты
+      summary: Блокировка карты по ID (для администратора)
+      description: "Блокирует карту, устанавливая статус BLOCKED. Доступно только\
+        \ администраторам."
+      operationId: blockCard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: withResult
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        "200":
+          description: Карта успешно заблокирована (с возвратом данных)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoCardDetailedResponse"
+        "204":
+          description: Карта успешно заблокирована (без возврата данных)
+        "404":
+          description: Карта не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+  /api/cards/{id}/activate:
+    patch:
+      tags:
+        - Карты
+      summary: Активация карты по ID (для администратора)
+      description: "Активирует карту, устанавливая статус ACTIVE. Доступно только\
+        \ администраторам."
+      operationId: activateCard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: withResult
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        "200":
+          description: Карта успешно активирована (с возвратом данных)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoCardDetailedResponse"
+        "204":
+          description: Карта успешно активирована (без возврата данных)
+        "404":
+          description: Карта не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+  /api/cards/{cardId}:
+    get:
+      tags:
+        - Карты
+      summary: Получение детальной информации о карте по ID (для администратора)
+      description: Получение детальной информации о карте по её идентификатору. Доступно
+        только администраторам.
+      operationId: getCardByIdForAdmin
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            exclusiveMinimum: 0
+      responses:
+        "200":
+          description: Карта успешно найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoCardDetailedResponse"
+        "404":
+          description: Карта не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+  /api/cards/my:
+    get:
+      tags:
+        - Карты
+      summary: Получение списка своих карт (для пользователя)
+      description: "Возвращает постраничный список карт, принадлежащих пользовател\
+        ю, с возможностью фильтрации. Доступно только аутентифицированным пользова\
+        телям."
+      operationId: getMyCards
+      parameters:
+        - name: pageable
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Pageable"
+        - name: filter
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/FilterCardUserRequest"
+      responses:
+        "200":
+          description: Список карт успешно получен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoPagedModelCardResponse"
+  /api/cards/my/{cardId}:
+    get:
+      tags:
+        - Карты
+      summary: Получение детальной информации о своей карте по ID
+      description: Возвращает подробные данные о карте пользователя по её ID. Доступно
+        только аутентифицированным пользователям.
+      operationId: getMyCardById
+      parameters:
+        - name: cardId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+            exclusiveMinimum: 0
+      responses:
+        "200":
+          description: Карта успешно найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoCardDetailedResponse"
+        "404":
+          description: Карта не найдена или не принадлежит пользователю
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+  /api/cards/block-requests:
+    get:
+      tags:
+        - Запросы на блокировку карт
+      summary: Получение списка запросов на блокировку карт (для администратора)
+      description: Возвращает постраничный список запросов на блокировку карт с возможностью
+        фильтрации. Доступно только администраторам.
+      operationId: getAllCardBlockRequest
+      parameters:
+        - name: pageable
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/Pageable"
+        - name: filter
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/FilterCardBlockRequest"
+      responses:
+        "200":
+          description: Список запросов успешно получен
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDtoPagedModelCardBlockRequestDto"
+  /api/cards/{id}:
+    delete:
+      tags:
+        - Карты
+      summary: Удаление карты по ID (для администратора)
+      description: Удаляет карту по её ID. Доступно только администраторам.
+      operationId: deleteCard
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "204":
+          description: Карта успешно удалена
+        "404":
+          description: Карта не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiResponseDto"
+components:
+  schemas:
+    UserRequest:
+      type: object
+      description: Данные для создания/обновления пользователя
+      properties:
+        username:
+          type: string
+          description: Имя пользователя
+          example: admin
+          maxLength: 100
+          minLength: 3
+        password:
+          type: string
+          description: Пароль пользователя
+          example: 123456
+          maxLength: 100
+          minLength: 6
+        role:
+          type: string
+          description: Роль пользователя
+          enum:
+            - ADMIN
+            - USER
+      required:
+        - password
+        - role
+        - username
+    ApiResponseDto:
+      type: object
+      description: Общий формат ответа API
+      properties:
+        message:
+          type: string
+          description: Сообщение о результате запроса
+          example: success
+        data:
+          description: "Данные, возвращаемые в ответе"
+        error:
+          type: string
+          description: "Сообщение об ошибке, если запрос неуспешен"
+          example: Invalid request
+        status:
+          type: string
+          description: HTTP-статус ответа
+          enum:
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 EARLY_HINTS
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+          example: OK
+    ApiResponseDtoUserResponse:
+      type: object
+      description: Общий формат ответа API
+      properties:
+        message:
+          type: string
+          description: Сообщение о результате запроса
+          example: success
+        data:
+          $ref: "#/components/schemas/UserResponse"
+          description: "Данные, возвращаемые в ответе"
+        error:
+          type: string
+          description: "Сообщение об ошибке, если запрос неуспешен"
+          example: Invalid request
+        status:
+          type: string
+          description: HTTP-статус ответа
+          enum:
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 EARLY_HINTS
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+          example: OK
+    UserResponse:
+      type: object
+      description: Данные о пользователе
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID пользователя
+          example: 1
+        username:
+          type: string
+          description: Имя пользователя
+          example: admin
+        role:
+          type: string
+          description: Роль пользователя
+          enum:
+            - ADMIN
+            - USER
+          example: ADMIN
+    TransferRequest:
+      type: object
+      description: Данные для перевода между картами
+      properties:
+        fromCardId:
+          type: integer
+          format: int64
+          description: ID карты отправителя
+          example: 1
+        toCardId:
+          type: integer
+          format: int64
+          description: ID карты получателя
+          example: 2
+        amount:
+          type: number
+          description: Сумма перевода
+          example: 100.5
+          maximum: 100000.00
+          minimum: 1
+      required:
+        - amount
+        - fromCardId
+        - toCardId
+    ApiResponseDtoTransferResponse:
+      type: object
+      description: Общий формат ответа API
+      properties:
+        message:
+          type: string
+          description: Сообщение о результате запроса
+          example: success
+        data:
+          $ref: "#/components/schemas/TransferResponse"
+          description: "Данные, возвращаемые в ответе"
+        error:
+          type: string
+          description: "Сообщение об ошибке, если запрос неуспешен"
+          example: Invalid request
+        status:
+          type: string
+          description: HTTP-статус ответа
+          enum:
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 EARLY_HINTS
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+          example: OK
+    TransferResponse:
+      type: object
+      description: Данные о переводе между картами
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID перевода
+          example: 1
+        fromCardId:
+          type: integer
+          format: int64
+          description: ID карты отправителя
+          example: 1
+        fromCardNumber:
+          type: string
+          description: Номер карты отправителя
+          example: '****-****-****-3456'
+        toCardId:
+          type: integer
+          format: int64
+          description: ID карты получателя
+          example: 2
+        toCardNumber:
+          type: string
+          description: Номер карты получателя
+          example: '****-****-****-7654'
+        amount:
+          type: number
+          description: Сумма перевода
+          example: 100.5
+        status:
+          type: string
+          description: Статус перевода
+          enum:
+            - PENDING
+            - COMPLETED
+            - FAILED
+          example: COMPLETED
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата и время создания перевода
+          example: 2025-09-07T10:59:00
+    CardRequest:
+      type: object
+      description: Данные для создания новой карты
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: ID владельца карты
+          example: 1
+        expirationDate:
+          type: string
+          format: date
+          description: Дата окончания действия карты
+          example: 2026-12-31
+        balance:
+          type: number
+          description: Баланс карты
+          example: 1000.5
+      required:
+        - balance
+        - expirationDate
+        - userId
+    ApiResponseDtoCardDetailedResponse:
+      type: object
+      description: Общий формат ответа API
+      properties:
+        message:
+          type: string
+          description: Сообщение о результате запроса
+          example: success
+        data:
+          $ref: "#/components/schemas/CardDetailedResponse"
+          description: "Данные, возвращаемые в ответе"
+        error:
+          type: string
+          description: "Сообщение об ошибке, если запрос неуспешен"
+          example: Invalid request
+        status:
+          type: string
+          description: HTTP-статус ответа
+          enum:
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 EARLY_HINTS
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+          example: OK
+    CardDetailedResponse:
+      type: object
+      description: "Подробные данные о карте, включая переводы"
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID карты
+          example: 1
+        cardNumber:
+          type: string
+          description: Номер карты
+          example: '****-****-****-3456'
+        expirationDate:
+          type: string
+          format: date
+          description: Дата окончания действия карты
+          example: 2026-12-31
+        status:
+          type: string
+          description: Статус карты
+          enum:
+            - ACTIVE
+            - BLOCKED
+            - EXPIRED
+          example: ACTIVE
+        balance:
+          type: number
+          description: Баланс карты
+          example: 1000.5
+        ownerId:
+          type: integer
+          format: int64
+          description: ID владельца карты
+          example: 1
+        ownerUsername:
+          type: string
+          description: Имя пользователя владельца карты
+          example: admin
+        transfersFrom:
+          type: array
+          description: Список исходящих переводов
+          items:
+            $ref: "#/components/schemas/TransferResponse"
+        transfersTo:
+          type: array
+          description: Список входящих переводов
+          items:
+            $ref: "#/components/schemas/TransferResponse"
+    ApiResponseDtoCardBlockRequestDto:
+      type: object
+      description: Общий формат ответа API
+      properties:
+        message:
+          type: string
+          description: Сообщение о результате запроса
+          example: success
+        data:
+          $ref: "#/components/schemas/CardBlockRequestDto"
+          description: "Данные, возвращаемые в ответе"
+        error:
+          type: string
+          description: "Сообщение об ошибке, если запрос неуспешен"
+          example: Invalid request
+        status:
+          type: string
+          description: HTTP-статус ответа
+          enum:
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 EARLY_HINTS
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+          example: OK
+    CardBlockRequestDto:
+      type: object
+      description: Данные о запросе на блокировку карты
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID запроса на блокировку
+          example: 1
+        card:
+          $ref: "#/components/schemas/CardResponse"
+          description: Данные о карте
+        user:
+          $ref: "#/components/schemas/UserResponse"
+          description: Данные о пользователе
+        status:
+          type: string
+          description: Статус запроса на блокировку
+          enum:
+            - PENDING
+            - APPROVED
+            - REJECTED
+          example: PENDING
+        createdAt:
+          type: string
+          format: date-time
+          description: Дата и время создания запроса
+          example: 2025-09-07T10:59:00
+    CardResponse:
+      type: object
+      description: Данные о карте
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID карты
+          example: 1
+        cardNumber:
+          type: string
+          description: Номер карты
+          example: '****-****-****-3456'
+        expirationDate:
+          type: string
+          format: date
+          description: Дата окончания действия карты
+          example: 2026-12-31
+        status:
+          type: string
+          description: Статус карты
+          enum:
+            - ACTIVE
+            - BLOCKED
+            - EXPIRED
+          example: ACTIVE
+        balance:
+          type: number
+          description: Баланс карты
+          example: 1000.5
+    AuthRequest:
+      type: object
+      description: Данные для аутентификации пользователя
+      properties:
+        username:
+          type: string
+          description: Имя пользователя
+          example: admin
+        password:
+          type: string
+          description: Пароль пользователя
+          example: 123456
+    ApiResponseDtoAuthResponse:
+      type: object
+      description: Общий формат ответа API
+      properties:
+        message:
+          type: string
+          description: Сообщение о результате запроса
+          example: success
+        data:
+          $ref: "#/components/schemas/AuthResponse"
+          description: "Данные, возвращаемые в ответе"
+        error:
+          type: string
+          description: "Сообщение об ошибке, если запрос неуспешен"
+          example: Invalid request
+        status:
+          type: string
+          description: HTTP-статус ответа
+          enum:
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 EARLY_HINTS
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+          example: OK
+    AuthResponse:
+      type: object
+      description: Ответ с токеном доступа после аутентификации
+      properties:
+        accessToken:
+          type: string
+          description: Токен доступа JWT
+          example: eyJhbGciO...
+    Pageable:
+      type: object
+      properties:
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+        sort:
+          type: array
+          items:
+            type: string
+    ApiResponseDtoPagedModelUserResponse:
+      type: object
+      description: Общий формат ответа API
+      properties:
+        message:
+          type: string
+          description: Сообщение о результате запроса
+          example: success
+        data:
+          $ref: "#/components/schemas/PagedModelUserResponse"
+          description: "Данные, возвращаемые в ответе"
+        error:
+          type: string
+          description: "Сообщение об ошибке, если запрос неуспешен"
+          example: Invalid request
+        status:
+          type: string
+          description: HTTP-статус ответа
+          enum:
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 EARLY_HINTS
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+          example: OK
+    PageMetadata:
+      type: object
+      properties:
+        size:
+          type: integer
+          format: int64
+        number:
+          type: integer
+          format: int64
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int64
+    PagedModelUserResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserResponse"
+        page:
+          $ref: "#/components/schemas/PageMetadata"
+    FilterCardAdminRequest:
+      type: object
+      description: Данные для фильтрации карт администратором
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID карты
+          example: 1
+        ownerId:
+          type: integer
+          format: int64
+          description: ID владельца карты
+          example: 1
+        ownerUserName:
+          type: string
+          description: Имя пользователя владельца карты
+          example: admin
+        cardStatus:
+          type: string
+          description: Статус карты
+          enum:
+            - ACTIVE
+            - BLOCKED
+            - EXPIRED
+          example: ACTIVE
+        balanceMin:
+          type: number
+          description: Минимальный баланс карты
+          example: 0.0
+        balanceMax:
+          type: number
+          description: Максимальный баланс карты
+          example: 10000.0
+    ApiResponseDtoPagedModelCardResponse:
+      type: object
+      description: Общий формат ответа API
+      properties:
+        message:
+          type: string
+          description: Сообщение о результате запроса
+          example: success
+        data:
+          $ref: "#/components/schemas/PagedModelCardResponse"
+          description: "Данные, возвращаемые в ответе"
+        error:
+          type: string
+          description: "Сообщение об ошибке, если запрос неуспешен"
+          example: Invalid request
+        status:
+          type: string
+          description: HTTP-статус ответа
+          enum:
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 EARLY_HINTS
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+          example: OK
+    PagedModelCardResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/CardResponse"
+        page:
+          $ref: "#/components/schemas/PageMetadata"
+    FilterCardUserRequest:
+      type: object
+      description: Данные для фильтрации карт пользователя
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: ID карты
+          example: 1
+        cardStatus:
+          type: string
+          description: Статус карты
+          enum:
+            - ACTIVE
+            - BLOCKED
+            - EXPIRED
+          example: ACTIVE
+        balanceMin:
+          type: number
+          description: Минимальный баланс карты
+          example: 0.0
+        balanceMax:
+          type: number
+          description: Максимальный баланс карты
+          example: 10000.0
+    FilterCardBlockRequest:
+      type: object
+      description: Данные для фильтрации запросов на блокировку карт
+      properties:
+        userId:
+          type: integer
+          format: int64
+          description: ID пользователя
+          example: 1
+        cardId:
+          type: integer
+          format: int64
+          description: ID карты
+          example: 1
+        status:
+          type: string
+          description: Статус запроса на блокировку
+          enum:
+            - PENDING
+            - APPROVED
+            - REJECTED
+          example: PENDING
+    ApiResponseDtoPagedModelCardBlockRequestDto:
+      type: object
+      description: Общий формат ответа API
+      properties:
+        message:
+          type: string
+          description: Сообщение о результате запроса
+          example: success
+        data:
+          $ref: "#/components/schemas/PagedModelCardBlockRequestDto"
+          description: "Данные, возвращаемые в ответе"
+        error:
+          type: string
+          description: "Сообщение об ошибке, если запрос неуспешен"
+          example: Invalid request
+        status:
+          type: string
+          description: HTTP-статус ответа
+          enum:
+            - 100 CONTINUE
+            - 101 SWITCHING_PROTOCOLS
+            - 102 PROCESSING
+            - 103 EARLY_HINTS
+            - 103 CHECKPOINT
+            - 200 OK
+            - 201 CREATED
+            - 202 ACCEPTED
+            - 203 NON_AUTHORITATIVE_INFORMATION
+            - 204 NO_CONTENT
+            - 205 RESET_CONTENT
+            - 206 PARTIAL_CONTENT
+            - 207 MULTI_STATUS
+            - 208 ALREADY_REPORTED
+            - 226 IM_USED
+            - 300 MULTIPLE_CHOICES
+            - 301 MOVED_PERMANENTLY
+            - 302 FOUND
+            - 302 MOVED_TEMPORARILY
+            - 303 SEE_OTHER
+            - 304 NOT_MODIFIED
+            - 305 USE_PROXY
+            - 307 TEMPORARY_REDIRECT
+            - 308 PERMANENT_REDIRECT
+            - 400 BAD_REQUEST
+            - 401 UNAUTHORIZED
+            - 402 PAYMENT_REQUIRED
+            - 403 FORBIDDEN
+            - 404 NOT_FOUND
+            - 405 METHOD_NOT_ALLOWED
+            - 406 NOT_ACCEPTABLE
+            - 407 PROXY_AUTHENTICATION_REQUIRED
+            - 408 REQUEST_TIMEOUT
+            - 409 CONFLICT
+            - 410 GONE
+            - 411 LENGTH_REQUIRED
+            - 412 PRECONDITION_FAILED
+            - 413 PAYLOAD_TOO_LARGE
+            - 413 REQUEST_ENTITY_TOO_LARGE
+            - 414 URI_TOO_LONG
+            - 414 REQUEST_URI_TOO_LONG
+            - 415 UNSUPPORTED_MEDIA_TYPE
+            - 416 REQUESTED_RANGE_NOT_SATISFIABLE
+            - 417 EXPECTATION_FAILED
+            - 418 I_AM_A_TEAPOT
+            - 419 INSUFFICIENT_SPACE_ON_RESOURCE
+            - 420 METHOD_FAILURE
+            - 421 DESTINATION_LOCKED
+            - 422 UNPROCESSABLE_ENTITY
+            - 423 LOCKED
+            - 424 FAILED_DEPENDENCY
+            - 425 TOO_EARLY
+            - 426 UPGRADE_REQUIRED
+            - 428 PRECONDITION_REQUIRED
+            - 429 TOO_MANY_REQUESTS
+            - 431 REQUEST_HEADER_FIELDS_TOO_LARGE
+            - 451 UNAVAILABLE_FOR_LEGAL_REASONS
+            - 500 INTERNAL_SERVER_ERROR
+            - 501 NOT_IMPLEMENTED
+            - 502 BAD_GATEWAY
+            - 503 SERVICE_UNAVAILABLE
+            - 504 GATEWAY_TIMEOUT
+            - 505 HTTP_VERSION_NOT_SUPPORTED
+            - 506 VARIANT_ALSO_NEGOTIATES
+            - 507 INSUFFICIENT_STORAGE
+            - 508 LOOP_DETECTED
+            - 509 BANDWIDTH_LIMIT_EXCEEDED
+            - 510 NOT_EXTENDED
+            - 511 NETWORK_AUTHENTICATION_REQUIRED
+          example: OK
+    PagedModelCardBlockRequestDto:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/CardBlockRequestDto"
+        page:
+          $ref: "#/components/schemas/PageMetadata"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      description: JWT токен авторизации
+      scheme: bearer
+      bearerFormat: JWT

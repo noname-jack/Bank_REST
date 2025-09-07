@@ -1,6 +1,6 @@
 package com.example.bankcards.mapper;
 
-import com.example.bankcards.dto.request.CardBlockRequestDto;
+import com.example.bankcards.dto.response.CardBlockRequestDto;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardBlockRequest;
 import com.example.bankcards.entity.User;

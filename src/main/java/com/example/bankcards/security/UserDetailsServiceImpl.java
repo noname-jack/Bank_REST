@@ -1,7 +1,6 @@
 package com.example.bankcards.security;
 
 import com.example.bankcards.repository.UserRepository;
-import com.example.bankcards.service.UserService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

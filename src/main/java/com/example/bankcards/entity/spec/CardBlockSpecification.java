@@ -1,7 +1,6 @@
 package com.example.bankcards.entity.spec;
 
 import com.example.bankcards.dto.request.FilterCardBlockRequest;
-import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardBlockRequest;
 import com.example.bankcards.entity.enums.BlockRequestStatus;
 import org.springframework.data.jpa.domain.Specification;

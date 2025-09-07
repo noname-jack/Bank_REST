@@ -11,8 +11,6 @@ import com.example.bankcards.mapper.TransferMapper;
 import com.example.bankcards.repository.TransferRepository;
 import com.example.bankcards.service.CardService;
 import com.example.bankcards.service.TransferService;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,8 +60,4 @@ public class TransferServiceImpl implements TransferService {
         return transferMapper.toTransferResponse(transfer);
     }
 
-    @Override
-    public Page<TransferResponse> getUserTransfers(Long userId, Pageable pageable) {
-        return null;
-    }
 }

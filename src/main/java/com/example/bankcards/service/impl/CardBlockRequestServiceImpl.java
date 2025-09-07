@@ -1,6 +1,6 @@
 package com.example.bankcards.service.impl;
 
-import com.example.bankcards.dto.request.CardBlockRequestDto;
+import com.example.bankcards.dto.response.CardBlockRequestDto;
 import com.example.bankcards.dto.request.FilterCardBlockRequest;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardBlockRequest;
