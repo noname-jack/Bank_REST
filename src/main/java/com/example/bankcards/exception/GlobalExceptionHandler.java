@@ -108,10 +108,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ApiResponseDto<Object>> handleJsonParseError(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ApiResponseDto<Object>> handleJsonParseError() {
         return ResponseEntity
                 .badRequest()
-                .body(ApiResponseDto.error("Некорректный формат JSON запроса" + ex, HttpStatus.BAD_REQUEST));
+                .body(ApiResponseDto.error("Некорректный формат JSON запроса", HttpStatus.BAD_REQUEST));
     }
 
 
