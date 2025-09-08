@@ -5,9 +5,9 @@ info:
   contact:
     name: noname-jack
     email: aleksander.moskovchenko@mail.ru
-  version: 1.0.0
+  version: 0.0.1-SNAPSHOT
 servers:
-  - url: http://localhost:8080
+  - url: http://localhost:8088
     description: Generated server url
 security:
   - bearerAuth: []
