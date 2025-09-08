@@ -24,3 +24,9 @@ databaseChangeLog:
       changes:
         - sqlFile:
             path: db/migration/changelog/changelog-4-create-card-block-request.sql
+  - changeSet:
+      id: 5-add-initial-test-data
+      author: noname_jack
+      changes:
+        - sqlFile:
+            path: db/migration/changelog/changelog-5-add-initial-test-data.sql
